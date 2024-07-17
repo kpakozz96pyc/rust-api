@@ -1,13 +1,19 @@
 mod handler;
 mod model;
 mod response;
+mod db;
 
 use model::{QueryOptions, DB};
 use warp::{http::Method, Filter, Rejection};
 
 type WebResult<T> = std::result::Result<T, Rejection>;
 
+extern crate diesel;
+use diesel::prelude::*;
+use diesel::pg::PgConnection;
+
 #[tokio::main]
+#[warn(unused_variables)]
 async fn main() {
     if std::env::var_os("RUST_LOG").is_none() {
         std::env::set_var("RUST_LOG", "api=info");
@@ -15,6 +21,10 @@ async fn main() {
     pretty_env_logger::init();
 
     let db = model::todo_db();
+
+
+    let connection = PgConnection::establish("postgres://rust:rust_123@localhost/rust_kills").unwrap();
+    println!("Connection to the database established!");
 
     let todo_router = warp::path!("api" / "todos");
     let todo_router_id = warp::path!("api" / "todos" / String);
