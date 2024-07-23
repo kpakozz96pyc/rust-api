@@ -1,79 +1,77 @@
-mod handler;
-mod model;
-mod response;
-mod db;
+use std::net::SocketAddr;
 
-use model::{QueryOptions, DB};
-use warp::{http::Method, Filter, Rejection};
+use deadpool_diesel::postgres::{Manager, Pool};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-type WebResult<T> = std::result::Result<T, Rejection>;
+use crate::config::config;
+use crate::errors::internal_error;
+use crate::routes::app_router;
 
-extern crate diesel;
-use diesel::prelude::*;
-use diesel::pg::PgConnection;
+mod config;
+mod domain;
+mod errors;
+mod handlers;
+mod infra;
+mod routes;
+mod utils;
 
-#[tokio::main]
-#[warn(unused_variables)]
-async fn main() {
-    if std::env::var_os("RUST_LOG").is_none() {
-        std::env::set_var("RUST_LOG", "api=info");
-    }
-    pretty_env_logger::init();
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
-    let db = model::todo_db();
-
-
-    let connection = PgConnection::establish("postgres://rust:rust_123@localhost/rust_kills").unwrap();
-    println!("Connection to the database established!");
-
-    let todo_router = warp::path!("api" / "todos");
-    let todo_router_id = warp::path!("api" / "todos" / String);
-
-    let health_checker = warp::path!("api" / "healthchecker")
-        .and(warp::get())
-        .and_then(handler::health_checker_handler);
-
-    let cors = warp::cors()
-        .allow_methods(&[Method::GET, Method::POST, Method::PATCH, Method::DELETE])
-        .allow_origins(vec!["http://localhost:3000/", "http://localhost:8000/"])
-        .allow_headers(vec!["content-type"])
-        .allow_credentials(true);
-
-    let todo_routes = todo_router
-        .and(warp::post())
-        .and(warp::body::json())
-        .and(with_db(db.clone()))
-        .and_then(handler::create_todo_handler)
-        .or(todo_router
-            .and(warp::get())
-            .and(warp::query::<QueryOptions>())
-            .and(with_db(db.clone()))
-            .and_then(handler::todos_list_handler));
-
-    let todo_routes_id = todo_router_id
-        .and(warp::patch())
-        .and(warp::body::json())
-        .and(with_db(db.clone()))
-        .and_then(handler::edit_todo_handler)
-        .or(todo_router_id
-            .and(warp::get())
-            .and(with_db(db.clone()))
-            .and_then(handler::get_todo_handler))
-        .or(todo_router_id
-            .and(warp::delete())
-            .and(with_db(db.clone()))
-            .and_then(handler::delete_todo_handler));
-
-    let routes = todo_routes
-        .with(cors)
-        .with(warp::log("api"))
-        .or(todo_routes_id)
-        .or(health_checker);
-
-    println!("🚀 Server started successfully");
-    warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
+#[derive(Clone)]
+pub struct AppState {
+    pool: Pool,
 }
 
-fn with_db(db: DB) -> impl Filter<Extract = (DB,), Error = std::convert::Infallible> + Clone {
-    warp::any().map(move || db.clone())
+#[tokio::main]
+async fn main() {
+    init_tracing();
+
+    let config = config().await;
+
+    let manager = Manager::new(
+        config.db_url().to_string(),
+        deadpool_diesel::Runtime::Tokio1,
+    );
+    let pool = Pool::builder(manager).build().unwrap();
+
+    {
+        run_migrations(&pool).await;
+    }
+
+    let state = AppState { pool };
+
+    let app = app_router(state.clone()).with_state(state);
+
+    let host = config.server_host();
+    let port = config.server_port();
+
+    let address = format!("{}:{}", host, port);
+
+    let socket_addr: SocketAddr = address.parse().unwrap();
+
+    tracing::info!("listening on http://{}", socket_addr);
+    axum::Server::bind(&socket_addr)
+        .serve(app.into_make_service())
+        .await
+        .map_err(internal_error)
+        .unwrap()
+}
+
+fn init_tracing() {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "example_tokio_postgres=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+}
+
+async fn run_migrations(pool: &Pool) {
+    let conn = pool.get().await.unwrap();
+    conn.interact(|conn| conn.run_pending_migrations(MIGRATIONS).map(|_| ()))
+        .await
+        .unwrap()
+        .unwrap();
 }
