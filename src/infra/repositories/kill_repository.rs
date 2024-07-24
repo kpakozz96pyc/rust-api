@@ -1,10 +1,10 @@
-use chrono::{DateTime, Utc};
 use diesel::{
     ExpressionMethods, Insertable, PgTextExpressionMethods, QueryDsl, Queryable, RunQueryDsl,
-    Selectable, SelectableHelper,
+    Selectable, SelectableHelper
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::infra::db::schema::kills;
 
 use crate::domain::models::kill::Kill;
 use crate::infra::errors::{adapt_infra_error, InfraError};
@@ -15,47 +15,39 @@ use crate::infra::errors::{adapt_infra_error, InfraError};
 pub struct KillDb {
     pub id: Uuid,
     pub killer: String,
-    pub killed: String,
-    pub range: f32,
-    pub gun: String,
-    pub date: DateTime<Utc>,
-    pub server: String,
+    pub killed: String
 }
 
 #[derive(Deserialize, Insertable)]
 #[diesel(table_name = kills)]
 pub struct NewKillDb {
     pub killer: String,
-    pub killed: String,
-    pub range: f32,
-    pub gun: String,
-    pub date: DateTime<Utc>,
-    pub server: String,
+    pub killed: String
 }
 
 #[derive(Deserialize)]
-pub struct PostsFilter {
-    published: Option<bool>,
-    title_contains: Option<String>,
+pub struct KillsFilter {
+    killer: Option<String>,
+    killed: Option<String>,
 }
 
 pub async fn insert(
     pool: &deadpool_diesel::postgres::Pool,
-    new_post: NewPostDb,
+    new_kill: NewKillDb,
 ) -> Result<Kill, InfraError> {
     let conn = pool.get().await.map_err(adapt_infra_error)?;
     let res = conn
         .interact(|conn| {
-            diesel::insert_into(posts::table)
-                .values(new_post)
-                .returning(PostDb::as_returning())
+            diesel::insert_into(kills::table)
+                .values(new_kill)
+                .returning(KillDb::as_returning())
                 .get_result(conn)
         })
         .await
         .map_err(adapt_infra_error)?
         .map_err(adapt_infra_error)?;
 
-    Ok(adapt_post_db_to_post(res))
+    Ok(adapt_kill_db_to_kill(res))
 }
 
 pub async fn get(
@@ -65,54 +57,53 @@ pub async fn get(
     let conn = pool.get().await.map_err(adapt_infra_error)?;
     let res = conn
         .interact(move |conn| {
-            posts::table
-                .filter(posts::id.eq(id))
-                .select(PostDb::as_select())
+            kills::table
+                .filter(kills::id.eq(id))
+                .select(KillDb::as_select())
                 .get_result(conn)
         })
         .await
         .map_err(adapt_infra_error)?
         .map_err(adapt_infra_error)?;
 
-    Ok(adapt_post_db_to_post(res))
+    Ok(adapt_kill_db_to_kill(res))
 }
 
 pub async fn get_all(
     pool: &deadpool_diesel::postgres::Pool,
-    filter: PostsFilter,
+    filter: KillsFilter,
 ) -> Result<Vec<Kill>, InfraError> {
     let conn = pool.get().await.map_err(adapt_infra_error)?;
     let res = conn
         .interact(move |conn| {
-            let mut query = posts::table.into_boxed::<diesel::pg::Pg>();
+            let mut query = kills::table.into_boxed::<diesel::pg::Pg>();
 
-            if let Some(published) = filter.published {
-                query = query.filter(posts::published.eq(published));
+            if let Some(killer) = filter.killer {
+                query = query.filter(kills::killer.eq(killer));
             }
 
-            if let Some(title_contains) = filter.title_contains {
-                query = query.filter(posts::title.ilike(format!("%{}%", title_contains)));
+            if let Some(title_contains) = filter.killed {
+                query = query.filter(kills::killer.ilike(format!("%{}%", title_contains)));
             }
 
-            query.select(PostDb::as_select()).load::<PostDb>(conn)
+            query.select(KillDb::as_select()).load::<KillDb>(conn)
         })
         .await
         .map_err(adapt_infra_error)?
         .map_err(adapt_infra_error)?;
 
-    let posts: Vec<Kill> = res
+    let kills: Vec<Kill> = res
         .into_iter()
-        .map(|post_db| adapt_post_db_to_post(post_db))
+        .map(|post_db| adapt_kill_db_to_kill(post_db))
         .collect();
 
-    Ok(posts)
+    Ok(kills)
 }
 
-fn adapt_post_db_to_post(post_db: PostDb) -> Kill {
+fn adapt_kill_db_to_kill(kill_db: KillDb) -> Kill {
     Kill {
-        id: post_db.id,
-        title: post_db.title,
-        body: post_db.body,
-        published: post_db.published,
+        id: kill_db.id,
+        killer: kill_db.killer,
+        killed: kill_db.killed
     }
 }

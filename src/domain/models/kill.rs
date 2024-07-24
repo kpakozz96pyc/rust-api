@@ -1,7 +1,6 @@
 use axum::http::StatusCode;
 use axum::Json;
 use axum::response::IntoResponse;
-use chrono::{DateTime, Utc};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -12,20 +11,16 @@ pub struct Kill {
     pub id: Uuid,
     pub killer: String,
     pub killed: String,
-    pub range: f32,
-    pub gun: String,
-    pub date: DateTime<Utc>,
-    pub server: String,
 }
 
 #[derive(Debug)]
-pub enum PostError {
+pub enum KillError {
     InternalServerError,
     NotFound(Uuid),
     InfraError(InfraError),
 }
 
-impl IntoResponse for PostError {
+impl IntoResponse for KillError {
     fn into_response(self) -> axum::response::Response {
         let (status, err_msg) = match self {
             Self::NotFound(id) => (

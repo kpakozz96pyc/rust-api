@@ -1,10 +1,9 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    posts (id) {
+    kills (id) {
         id -> Uuid,
-        title -> Varchar,
-        body -> Text,
-        published -> Bool,
+        killer -> Varchar,
+        killed -> Varchar,
     }
 }

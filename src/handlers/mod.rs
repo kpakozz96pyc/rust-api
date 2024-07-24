@@ -1,1 +1,1 @@
-pub mod kills;
+pub mod kills_handlers;
