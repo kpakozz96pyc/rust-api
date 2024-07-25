@@ -29,5 +29,6 @@ fn adapt_kills_to_kills_response(post: Kill) -> KillResponse {
         id: post.id,
         killer: post.killer,
         killed: post.killed,
+        kill_date: post.kill_date,
     }
 }

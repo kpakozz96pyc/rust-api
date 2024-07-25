@@ -5,5 +5,6 @@ diesel::table! {
         id -> Uuid,
         killer -> Varchar,
         killed -> Varchar,
+        kill_date -> Timestamp,
     }
 }

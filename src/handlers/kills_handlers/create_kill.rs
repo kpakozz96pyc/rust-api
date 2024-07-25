@@ -14,6 +14,7 @@ pub async fn create_kill(
     let new_kill_db = kill_repository::NewKillDb {
         killer: new_post.killer,
         killed: new_post.killed,
+        kill_date:new_post.kill_date
     };
 
     let created_post = kill_repository::insert(&state.pool, new_kill_db)
@@ -24,7 +25,7 @@ pub async fn create_kill(
         id: created_post.id,
         killer: created_post.killer,
         killed: created_post.killed,
-
+        kill_date: created_post.kill_date,
     };
 
     Ok(Json(kill_response))

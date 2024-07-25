@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::Json;
 use axum::response::IntoResponse;
+use chrono::NaiveDateTime;
 use serde_json::json;
 use uuid::Uuid;
 
@@ -11,6 +12,7 @@ pub struct Kill {
     pub id: Uuid,
     pub killer: String,
     pub killed: String,
+    pub kill_date: NaiveDateTime
 }
 
 #[derive(Debug)]

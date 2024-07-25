@@ -7,8 +7,9 @@ use crate::handlers::kills_handlers::{create_kill, get_kill, list_kills};
 use crate::AppState;
 
 pub fn app_router(state: AppState) -> Router<AppState> {
-    Router::new()
-        .route("/", get(root))
+
+    let a = Router::new();
+    a.route("/", get(root))
         .nest("/v1/kills_handlers", posts_routes(state.clone()))
         .fallback(handler_404)
 }

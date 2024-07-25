@@ -41,7 +41,9 @@ async fn main() {
 
     let state = AppState { pool };
 
-    let app = app_router(state.clone()).with_state(state);
+    let app = app_router(state.clone())
+        .with_state(state);
+
 
     let host = config.server_host();
     let port = config.server_port();
@@ -50,9 +52,12 @@ async fn main() {
 
     let socket_addr: SocketAddr = address.parse().unwrap();
 
+    tracing::info!("run");
+
     tracing::info!("listening on http://{}", socket_addr);
     axum::Server::bind(&socket_addr)
         .serve(app.into_make_service())
+
         .await
         .map_err(internal_error)
         .unwrap()
@@ -62,7 +67,7 @@ fn init_tracing() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_tokio_postgres=debug".into()),
+                .unwrap_or_else(|_| "trace".into()),  // Set default log level to info
         )
         .with(tracing_subscriber::fmt::layer())
         .init();

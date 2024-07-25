@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -13,6 +14,7 @@ mod list_kills;
 pub struct CreateKillRequest {
     pub killer: String,
     pub killed: String,
+    pub kill_date: NaiveDateTime
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,6 +22,7 @@ pub struct KillResponse {
     id: Uuid,
     pub killer: String,
     pub killed: String,
+    pub kill_date: NaiveDateTime
 }
 
 #[derive(Debug, Serialize, Deserialize)]

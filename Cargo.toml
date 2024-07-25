@@ -17,3 +17,10 @@ tokio = { version = "1.0", features = ["sync", "macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1.4", features = ["fast-rng", "v4", "serde"] }
+tower = "0.4.13"
+tower-http = { version = "0.3", features = ["trace"] }
+hyper = "0.14.30"
+
+[[bin]]
+name = "api"
+path = "src/main.rs"

@@ -1,0 +1,3 @@
+-- Your SQL goes here
+ALTER TABLE kills
+ADD COLUMN kill_date TIMESTAMP NOT NULL DEFAULT NOW();

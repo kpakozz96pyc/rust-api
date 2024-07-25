@@ -1,3 +1,4 @@
+use chrono::{ NaiveDateTime};
 use diesel::{
     ExpressionMethods, Insertable, PgTextExpressionMethods, QueryDsl, Queryable, RunQueryDsl,
     Selectable, SelectableHelper
@@ -15,14 +16,16 @@ use crate::infra::errors::{adapt_infra_error, InfraError};
 pub struct KillDb {
     pub id: Uuid,
     pub killer: String,
-    pub killed: String
+    pub killed: String,
+    pub kill_date: NaiveDateTime
 }
 
 #[derive(Deserialize, Insertable)]
 #[diesel(table_name = kills)]
 pub struct NewKillDb {
     pub killer: String,
-    pub killed: String
+    pub killed: String,
+    pub kill_date: NaiveDateTime
 }
 
 #[derive(Deserialize)]
@@ -104,6 +107,7 @@ fn adapt_kill_db_to_kill(kill_db: KillDb) -> Kill {
     Kill {
         id: kill_db.id,
         killer: kill_db.killer,
-        killed: kill_db.killed
+        killed: kill_db.killed,
+        kill_date: kill_db.kill_date
     }
 }
