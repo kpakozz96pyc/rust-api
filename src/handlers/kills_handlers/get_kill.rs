@@ -24,11 +24,13 @@ pub async fn get_kill(
     Ok(Json(adapt_kills_to_kills_response(kill)))
 }
 
-fn adapt_kills_to_kills_response(post: Kill) -> KillResponse {
+fn adapt_kills_to_kills_response(kill: Kill) -> KillResponse {
     KillResponse {
-        id: post.id,
-        killer: post.killer,
-        killed: post.killed,
-        kill_date: post.kill_date,
+        id: kill.id,
+        killer: kill.killer,
+        killed: kill.killed,
+        kill_date: kill.kill_date,
+        range: kill.range,
+        server: kill.server
     }
 }

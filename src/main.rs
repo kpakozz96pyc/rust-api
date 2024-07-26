@@ -57,7 +57,6 @@ async fn main() {
     tracing::info!("listening on http://{}", socket_addr);
     axum::Server::bind(&socket_addr)
         .serve(app.into_make_service())
-
         .await
         .map_err(internal_error)
         .unwrap()
@@ -67,7 +66,7 @@ fn init_tracing() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "trace".into()),  // Set default log level to info
+                .unwrap_or_else(|_| "debug".into()),  // Set default log level to info
         )
         .with(tracing_subscriber::fmt::layer())
         .init();

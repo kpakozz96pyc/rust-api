@@ -6,5 +6,7 @@ diesel::table! {
         killer -> Varchar,
         killed -> Varchar,
         kill_date -> Timestamp,
+        range -> Float8,
+        server -> Varchar,
     }
 }

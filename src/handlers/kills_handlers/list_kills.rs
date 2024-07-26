@@ -23,6 +23,8 @@ fn adapt_kill_to_kill_response(kill: Kill) -> KillResponse {
         killer: kill.killer,
         killed: kill.killed,
         kill_date: kill.kill_date,
+        range: kill.range,
+        server: kill.server
     }
 }
 

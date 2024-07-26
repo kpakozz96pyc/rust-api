@@ -17,7 +17,9 @@ pub struct KillDb {
     pub id: Uuid,
     pub killer: String,
     pub killed: String,
-    pub kill_date: NaiveDateTime
+    pub kill_date: NaiveDateTime,
+    pub range: f64,
+    pub server: String
 }
 
 #[derive(Deserialize, Insertable)]
@@ -25,7 +27,9 @@ pub struct KillDb {
 pub struct NewKillDb {
     pub killer: String,
     pub killed: String,
-    pub kill_date: NaiveDateTime
+    pub kill_date: NaiveDateTime,
+    pub range: f64,
+    pub server: String
 }
 
 #[derive(Deserialize)]
@@ -108,6 +112,8 @@ fn adapt_kill_db_to_kill(kill_db: KillDb) -> Kill {
         id: kill_db.id,
         killer: kill_db.killer,
         killed: kill_db.killed,
-        kill_date: kill_db.kill_date
+        kill_date: kill_db.kill_date,
+        range: kill_db.range,
+        server:kill_db.server
     }
 }

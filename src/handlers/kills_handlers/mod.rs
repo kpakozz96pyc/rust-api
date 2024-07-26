@@ -14,7 +14,9 @@ mod list_kills;
 pub struct CreateKillRequest {
     pub killer: String,
     pub killed: String,
-    pub kill_date: NaiveDateTime
+    pub kill_date: NaiveDateTime,
+    pub range: f64,
+    pub server: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,7 +24,9 @@ pub struct KillResponse {
     id: Uuid,
     pub killer: String,
     pub killed: String,
-    pub kill_date: NaiveDateTime
+    pub kill_date: NaiveDateTime,
+    pub range: f64,
+    pub server: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
