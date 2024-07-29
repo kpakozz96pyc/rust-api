@@ -3,7 +3,7 @@ use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::Router;
 
-use crate::handlers::kills_handlers::{create_kill, get_kill, list_kills};
+use crate::handlers::kills_handlers::{create_kill, get_kill, list_kills, load_kills_from_discord};
 use crate::AppState;
 
 pub fn app_router(state: AppState) -> Router<AppState> {
@@ -30,5 +30,6 @@ fn posts_routes(state: AppState) -> Router<AppState> {
         .route("/", post(create_kill))
         .route("/", get(list_kills))
         .route("/:id", get(get_kill))
+        .route("/collect", post(load_kills_from_discord))
         .with_state(state)
 }

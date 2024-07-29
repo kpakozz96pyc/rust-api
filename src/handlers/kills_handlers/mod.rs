@@ -5,10 +5,13 @@ use uuid::Uuid;
 pub use create_kill::create_kill;
 pub use get_kill::get_kill;
 pub use list_kills::list_kills;
+pub use load_kills_from_discord::load_kills_from_discord;
 
 mod create_kill;
 mod get_kill;
 mod list_kills;
+
+mod load_kills_from_discord;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateKillRequest {

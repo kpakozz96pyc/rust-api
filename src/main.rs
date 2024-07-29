@@ -15,6 +15,7 @@ mod handlers;
 mod infra;
 mod routes;
 mod utils;
+mod discord;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 
